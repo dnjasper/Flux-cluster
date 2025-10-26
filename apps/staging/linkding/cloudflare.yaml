@@ -6,55 +6,48 @@ spec:
   selector:
     matchLabels:
       app: cloudflared
-  replicas: 2 # You could also consider elastic scaling for this deployment
+  replicas: 2  # You could also consider elastic scaling for this deployment
   template:
     metadata:
       labels:
         app: cloudflared
     spec:
       containers:
-      - name: cloudflared
-        image: cloudflare/cloudflared:latest
-        args:
-        - tunnel
-
-        # Points cloudflared to the config file, which configures what
-        # cloudflared will actually do. This file is created by a ConfigMap
-        # below.
-        - --config
-        - /etc/cloudflared/config/config.yaml
-        - run
-        livenessProbe:
-          httpGet:
-            # Cloudflared has a /ready endpoint which returns 200 if and only if
-            # it has an active connection to the edge.
-            path: /ready
-            port: 2000
-          failureThreshold: 1
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        volumeMounts:
-        - name: config
-          mountPath: /etc/cloudflared/config
-          readOnly: true
-        # Each tunnel has an associated "credentials file" which authorizes machines
-        # to run the tunnel. cloudflared will read this file from its local filesystem,
-        # and it'll be stored in a k8s secret.
-        - name: creds
-          mountPath: /etc/cloudflared/creds
-          readOnly: true
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            - tunnel
+            - --config
+            - /etc/cloudflared/config/config.yaml
+            - run
+          livenessProbe:
+            httpGet:
+              path: /ready  # Cloudflared has a /ready endpoint which returns 200 if the tunnel is ready.
+              port: 2000
+            failureThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudflared/config
+              readOnly: true
+            - name: creds
+              mountPath: /etc/cloudflared/creds
+              readOnly: true
+            - name: origin-cert
+              mountPath: /etc/cloudflared/cert.pem  # Mount the cert.pem file at this path inside the container
+              subPath: cert.pem  # Ensure it's mounted as a file, not as a directory
       volumes:
-      - name: creds
-        secret:
-          secretName: tunnel-credentials
+        - name: creds
+          secret:
+            secretName: tunnel-credentials  # Reference the secret containing credentials.json
+        - name: config
+          configMap:
+            name: cloudflared  # This configMap holds the config.yaml for the tunnel
+        - name: origin-cert
+          secret:
+            secretName: cloudflare-origin-cert  # This references the secret containing cert.pem
 
-      # Create a config.yaml file from the ConfigMap below.
-      - name: config
-        configMap:
-          name: cloudflared
-          items:
-          - key: config.yaml
-            path: config.yaml
 ---
 # This ConfigMap is just a way to define the cloudflared config.yaml file in k8s.
 # It's useful to define it in k8s, rather than as a stand-alone .yaml file, because
