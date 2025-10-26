@@ -3,15 +3,8 @@ kind: Service
 metadata:
   name: linkding
 spec:
-  selector:
-    app: linkding       # This should match the label of your pod
   ports:
-    - protocol: TCP
-      port: 80           # External port 80
-      targetPort: 9090    # Forward traffic to port 9090 inside the pod
-      nodePort: 30080     # Expose port 80 externally on NodePort 30080
-    - protocol: TCP
-      port: 9090         # Internal port 9090 (ClusterIP)
-      targetPort: 9090    # Forward traffic to port 9090 inside the pod
-  type: ClusterIP         # Expose 9090 internally via ClusterIP
-
+    - port: 9090
+  selector:
+    app: linkding
+  type: ClusterIP
