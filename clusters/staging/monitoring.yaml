@@ -37,6 +37,6 @@ spec:
   path: ./monitoring/configs/staging
   prune: true
   decryption:
-  provider: sops
-  secretRef:
-    name: sops-age
+    provider: sops
+    secretRef:
+      name: sops-age
