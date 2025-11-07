@@ -14,7 +14,7 @@ spec:
             - name: renovate
               image: renovate/renovate:latest
               args:
-                - dnjas/flux-cluster
+                - dnjasper/flux-cluster
 
               envFrom:
                 - secretRef:
