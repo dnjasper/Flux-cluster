@@ -28,8 +28,8 @@ spec:
           envFrom:
             - configMapRef:
                name: audiobookshelf-configmap
-            - secretRef:
-                name: linkding-container-env
+            # - secretRef:
+            #     name: linkding-container-env
           securityContext:
             allowPrivilegeEscalation: false   
 
